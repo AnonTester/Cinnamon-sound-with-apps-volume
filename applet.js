@@ -15,6 +15,14 @@ const Main = imports.ui.main;
 const Settings = imports.ui.settings;
 const Gettext = imports.gettext;
 
+// l10n/translation support
+const UUID = "sound-with-apps-volume@koutch"
+Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale")
+
+function _(str) {
+  return Gettext.dgettext(UUID, str);
+}
+
 ///@koutch Settings
 const Gtk = imports.gi.Gtk;
 const Util = imports.misc.util;
@@ -401,6 +409,10 @@ let support_seek = [
     'clementine', 'banshee', 'rhythmbox', 'rhythmbox3', 'pragha', 'quodlibet',
     'amarok', 'xnoise', 'gmusicbrowser', 'spotify', 'vlc', 'gnome-mplayer',
     'qmmp', 'deadbeef', 'audacious'];
+/* dummy vars for translation */
+let x = _("Playing");
+x = _("Paused");
+x = _("Stopped");
 
 const VOLUME_NOTIFY_ID = 1;
 const VOLUME_ADJUSTMENT_STEP = 0.05; /* Volume adjustment step in % */
@@ -1087,14 +1099,6 @@ MediaPlayerLauncher.prototype = {
 
 };
 
-// l10n/translation support
-const UUID = "sound-with-apps-volume@koutch"
-Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale")
-
-function _(str) {
-  return Gettext.dgettext(UUID, str);
-}
-
 function MyApplet(metadata, orientation, panel_height, instanceId) {
     this._init(metadata, orientation, panel_height, instanceId);
 }
@@ -1139,6 +1143,8 @@ MyApplet.prototype = {
             this.settings.bindProperty(Settings.BindingDirection.IN, "launch-name", "launch_name", this._applySettings, null);
             this.settings.bindProperty(Settings.BindingDirection.IN, "launch-command", "launch_command", this._applySettings, null);
             this.settings.bindProperty(Settings.BindingDirection.IN, "launch-in-terminal", "launch_in_terminal", this._applySettings, null);
+            this.settings.bindProperty(Settings.BindingDirection.IN, "keybinding", "keybinding", this._onKeySettingsUpdated, null);
+            Main.keybindingManager.addHotKey(metadata.uuid, this.keybinding, Lang.bind(this, this._unnecessary));
 
             this.slider_volumeMax = 1;
             this.stop_scroll = false;/// to make a short pause when volume reach 100% while scrolling the applet
@@ -1267,6 +1273,16 @@ MyApplet.prototype = {
         catch (e) {
             global.logError(e);
         }
+    },
+
+    _onKeySettingsUpdated: function() {
+        if (this.keybinding != null)
+            Main.keybindingManager.addHotKey(this.metadata.uuid, this.keybinding, Lang.bind(this, this._unnecessary));
+
+        this._unnecessary;
+    },
+    _unnecessary: function() {
+        this.on_applet_clicked(null);
     },
 
     on_settings_changed : function() {
