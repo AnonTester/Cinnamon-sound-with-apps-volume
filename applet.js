@@ -8,11 +8,12 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
 const GLib = imports.gi.GLib;
-const Gvc = imports.gi.Gvc;
+const Cvc = imports.gi.Cvc;
 const Pango = imports.gi.Pango;
 const Tooltips = imports.ui.tooltips;
 const Main = imports.ui.main;
 const Settings = imports.ui.settings;
+const Gettext = imports.gettext;
 
 ///@koutch Settings
 const Gtk = imports.gi.Gtk;
@@ -355,14 +356,29 @@ MyPopupSliderMenuItem.prototype = {
         // the event, but for some weird reason events are still delivered
         // outside the slider if using clutter_grab_pointer_for_device
 
-
-        Clutter.grab_pointer(this._slider);
+        ///@koutch Clutter.grab_pointer/ungrab_pointer were removed in modern Clutter;
+        ///        grabbing is now done through the device that originated the event.
+        event.get_device().grab(this._slider);
         this._releaseId = this._slider.connect('button-release-event', Lang.bind(this, this._endDragging));
         this._motionId = this._slider.connect('motion-event', Lang.bind(this, this._motionEvent));
         let absX, absY;
         [absX, absY] = event.get_coords();
         this._moveHandle(absX, absY);
     },
+
+    _endDragging: function(actor, event) {
+        if (this._dragging) {
+            this._slider.disconnect(this._releaseId);
+            this._slider.disconnect(this._motionId);
+
+            event.get_device().ungrab();
+            this._dragging = false;
+
+            this.emit('drag-end');
+        }
+        return true;
+    },
+
     getValue: function() {
         return this._value;
     }
@@ -385,10 +401,6 @@ let support_seek = [
     'clementine', 'banshee', 'rhythmbox', 'rhythmbox3', 'pragha', 'quodlibet',
     'amarok', 'xnoise', 'gmusicbrowser', 'spotify', 'vlc', 'gnome-mplayer',
     'qmmp', 'deadbeef', 'audacious'];
-/* dummy vars for translation */
-let x = _("Playing");
-x = _("Paused");
-x = _("Stopped");
 
 const VOLUME_NOTIFY_ID = 1;
 const VOLUME_ADJUSTMENT_STEP = 0.05; /* Volume adjustment step in % */
@@ -477,12 +489,12 @@ TextImageMenuItem.prototype = {
         this.icon = new St.Icon({icon_name: icon, icon_type: St.IconType.SYMBOLIC, icon_size: 16});
         this.text = new St.Label({text: text});
         if (align === "left") {
-            this.actor.add_actor(this.icon, { span: 0 });
-            this.actor.add_actor(this.text, { span: -1 });
+            this.actor.add(this.icon, { span: 0 });
+            this.actor.add(this.text, { span: -1 });
         }
         else {
-            this.actor.add_actor(this.text, { span: 0 });
-            this.actor.add_actor(this.icon, { span: -1 });
+            this.actor.add(this.text, { span: 0 });
+            this.actor.add(this.icon, { span: -1 });
         }
     },
 
@@ -1075,6 +1087,14 @@ MediaPlayerLauncher.prototype = {
 
 };
 
+// l10n/translation support
+const UUID = "sound-with-apps-volume@koutch"
+Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale")
+
+function _(str) {
+  return Gettext.dgettext(UUID, str);
+}
+
 function MyApplet(metadata, orientation, panel_height, instanceId) {
     this._init(metadata, orientation, panel_height, instanceId);
 }
@@ -1119,8 +1139,6 @@ MyApplet.prototype = {
             this.settings.bindProperty(Settings.BindingDirection.IN, "launch-name", "launch_name", this._applySettings, null);
             this.settings.bindProperty(Settings.BindingDirection.IN, "launch-command", "launch_command", this._applySettings, null);
             this.settings.bindProperty(Settings.BindingDirection.IN, "launch-in-terminal", "launch_in_terminal", this._applySettings, null);
-            this.settings.bindProperty(Settings.BindingDirection.IN, "keybinding", "keybinding", this._onKeySettingsUpdated, null);
-            Main.keybindingManager.addHotKey(metadata.uuid, this.keybinding, Lang.bind(this, this._unnecessary));
 
             this.slider_volumeMax = 1;
             this.stop_scroll = false;/// to make a short pause when volume reach 100% while scrolling the applet
@@ -1205,7 +1223,7 @@ MyApplet.prototype = {
                ));
             }));
 
-            this._control = new Gvc.MixerControl({ name: 'Cinnamon Volume Control' });
+            this._control = new Cvc.MixerControl({ name: 'Cinnamon Volume Control' });
             this._control.connect('state-changed', Lang.bind(this, this._onControlStateChanged));
             this._control.connect('card-added', Lang.bind(this, this._onControlStateChanged));
             this._control.connect('card-removed', Lang.bind(this, this._onControlStateChanged));
@@ -1249,16 +1267,6 @@ MyApplet.prototype = {
         catch (e) {
             global.logError(e);
         }
-    },
-
-    _onKeySettingsUpdated: function() {
-        if (this.keybinding != null)
-            Main.keybindingManager.addHotKey(metadata.uuid, this.keybinding, Lang.bind(this, this._unnecessary));
-
-        this._unnecessary;
-    },
-    _unnecessary: function() {
-        this.on_applet_clicked(null);
     },
 
     on_settings_changed : function() {
@@ -1829,7 +1837,7 @@ MyApplet.prototype = {
     },
 
     _onControlStateChanged: function() {
-        if (this._control.get_state() == Gvc.MixerControlState.READY) {
+        if (this._control.get_state() == Cvc.MixerControlState.READY) {
             this._readOutput();
             this._readInput();
             this.actor.show();
