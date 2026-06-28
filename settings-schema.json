@@ -185,7 +185,7 @@
  "div4" : {
     "type" : "separator"
  },
-  "head3" : {
+"head3" : {
     "type" : "header",
     "description" : "Keybindings"
  },

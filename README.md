@@ -1,13 +1,17 @@
-[Sound applet](http://cinnamon-spices.linuxmint.com/uploads/applets/YZJM-DXVX-MD9N.png) with settings, applications' volume, volume 150%, mute button, scrolling track time, custom launcher ...
-
-For earlier version than Cinnamon 2.4 see [previous versions](https://github.com/Koutch/Cinnamon-sound-with-apps-volume/releases)
+Sound applet with settings, applications' volume, volume 150%, mute button, scrolling track time, custom auncher ..than Cinnamon 2.4 see [previous versions](https://github.com/Koutch/Cinnamon-sound-with-apps-volume/releases)
 
 This is a fork of the original Cinnamon sound applet. I add :
-- Volume control of each applications 100%/150%)
+- Volume control of each applications (100%/150%)
 - Mute with middle click on slider and applications mute button
 - Settings menu via Cinnamon's applets menu or right click on the applet 
 
- _[Changelog 1.3.1 (2015.01.02)](http://cinnamon-spices.linuxmint.com/applets/view/150)_ :
+_Changelog 1.4.0 (2026.06.28)_ :
+
+    - add global hotkey support (Super+v) (by WammKD)
+	- add i18n support
+	- compatibility fixes with cinnamon 6
+ 
+_Changelog 1.3.1 (2015.01.02)_ :
  
 	- add scroll/arrow key  step configurable for volume and track time
 	- add album art size configurable
@@ -28,7 +32,7 @@ This is a fork of the original Cinnamon sound applet. I add :
 	 - support no squarish album cover (specialy landscape cover)
 	 - add ability to scroll track time with step 1 second
 	 - add ability to seek track time with left/right arrow key step 10 seconds
-	 - clic at the right beside the track postionslider go to the end of the track
+	 - click at the right beside the track postionslider go to the end of the track
 	
  _[Changelog 1.2.3 (2014.12.15)](https://github.com/Koutch/Cinnamon-sound-with-apps-volume/releases/tag/V1.2.3)_ :
 
@@ -54,5 +58,3 @@ This is a fork of the original Cinnamon sound applet. I add :
  _Changelog 1.0 (2013.08.08)_ :
  
 	- initial upload
-
-[On cinnamon-spices.linuxmint.com](http://cinnamon-spices.linuxmint.com/applets/view/150)
